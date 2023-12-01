@@ -41,7 +41,7 @@ contract EtherSwap {
         address claimAddress,
         uint timelock
     ) external payable {
-        lockEther(preimageHash, msg.value, claimAddress, timelock);
+        _lockEther(preimageHash, msg.value, claimAddress, timelock);
     }
 
     /// Locks Ether for a swap in the contract and forwards a specified amount of Ether to the claim address
@@ -64,7 +64,7 @@ contract EtherSwap {
         );
 
         // Lock the amount of Ether sent minus the prepay amount in the contract
-        lockEther(
+        _lockEther(
             preimageHash,
             msg.value - prepayAmount,
             claimAddress,
@@ -103,7 +103,7 @@ contract EtherSwap {
         );
 
         // Make sure that the swap to be claimed has Ether locked
-        checkSwapIsLocked(hash);
+        _checkSwapIsLocked(hash);
 
         require(amount > relayerAmount, "Insufficient amount to pay fees");
 
@@ -150,7 +150,7 @@ contract EtherSwap {
             timelock
         );
 
-        checkSwapIsLocked(hash);
+        _checkSwapIsLocked(hash);
         delete swaps[hash];
 
         emit Refund(preimageHash);
@@ -194,7 +194,7 @@ contract EtherSwap {
     /// @param amount Amount to be locked in the contract
     /// @param claimAddress Address that can claim the locked Ether
     /// @param timelock Block height after which the locked Ether can be refunded
-    function lockEther(
+    function _lockEther(
         bytes32 preimageHash,
         uint amount,
         address claimAddress,
@@ -225,7 +225,7 @@ contract EtherSwap {
     /// Checks whether a swap has Ether locked in the contract
     /// @dev This function reverts if the swap has no Ether locked in the contract
     /// @param hash Value hash of the swap
-    function checkSwapIsLocked(bytes32 hash) private view {
+    function _checkSwapIsLocked(bytes32 hash) private view {
         require(
             swaps[hash] == true,
             "EtherSwap: swap has no Ether locked in the contract"
