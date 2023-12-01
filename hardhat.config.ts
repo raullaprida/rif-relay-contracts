@@ -67,7 +67,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     regtest: {
-      url: 'http://localhost:4444',
+      url: 'http://127.0.0.1:4444',
       chainId: 33,
     },
     testnet: {

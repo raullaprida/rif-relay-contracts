@@ -2,6 +2,7 @@ import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from 'hardhat/types';
 import fs from 'node:fs';
 import { ContractAddresses, NetworkConfig } from '../utils/scripts/types';
 import { parseJsonFile } from './utils';
+import { Overrides } from 'ethers';
 
 const ADDRESS_FILE = process.env['ADDRESS_FILE'] || 'contract-addresses.json';
 
@@ -49,6 +50,7 @@ export const deployContracts = async (
   ethers: HardhatEthersHelpers,
   networkName?: string
 ): Promise<ContractAddresses> => {
+  console.log('DEPLOYINg');
   const relayHubF = await ethers.getContractFactory('RelayHub');
   const penalizerF = await ethers.getContractFactory('Penalizer');
   const smartWalletF = await ethers.getContractFactory('SmartWallet');
@@ -58,6 +60,11 @@ export const deployContracts = async (
   const deployVerifierF = await ethers.getContractFactory('DeployVerifier');
   const relayVerifierF = await ethers.getContractFactory('RelayVerifier');
   const utilTokenF = await ethers.getContractFactory('UtilToken');
+
+  const overrides: Overrides = {
+    gasPrice: '60000000',
+    gasLimit: '6800000',
+  };
 
   const customSmartWalletF = await ethers.getContractFactory(
     'CustomSmartWallet'
@@ -76,53 +83,61 @@ export const deployContracts = async (
     'VersionRegistry'
   );
 
-  const { address: penalizerAddress } = await penalizerF.deploy();
+  const { address: penalizerAddress } = await penalizerF.deploy(overrides);
   const { address: relayHubAddress } = await relayHubF.deploy(
     penalizerAddress,
     1,
     1,
     1,
-    1
+    1,
+    overrides
   );
-  const { address: smartWalletAddress } = await smartWalletF.deploy();
+  const { address: smartWalletAddress } = await smartWalletF.deploy(overrides);
   const { address: smartWalletFactoryAddress } =
-    await smartWalletFactoryF.deploy(smartWalletAddress);
+    await smartWalletFactoryF.deploy(smartWalletAddress, overrides);
   const { address: deployVerifierAddress } = await deployVerifierF.deploy(
-    smartWalletFactoryAddress
+    smartWalletFactoryAddress,
+    overrides
   );
   const { address: relayVerifierAddress } = await relayVerifierF.deploy(
-    smartWalletFactoryAddress
+    smartWalletFactoryAddress,
+    overrides
   );
 
-  const { address: customSmartWalletAddress } =
-    await customSmartWalletF.deploy();
+  const { address: customSmartWalletAddress } = await customSmartWalletF.deploy(
+    overrides
+  );
   const { address: customSmartWalletFactoryAddress } =
-    await customSmartWalletFactoryF.deploy(customSmartWalletAddress);
+    await customSmartWalletFactoryF.deploy(customSmartWalletAddress, overrides);
   const { address: customDeployVerifierAddress } =
     await customSmartWalletDeployVerifierF.deploy(
-      customSmartWalletFactoryAddress
+      customSmartWalletFactoryAddress,
+      overrides
     );
   const { address: customRelayVerifierAddress } = await relayVerifierF.deploy(
-    customSmartWalletFactoryAddress
+    customSmartWalletFactoryAddress,
+    overrides
   );
 
   const { address: nativeHolderSmartWalletAddress } =
-    await nativeHolderSmartWalletF.deploy();
+    await nativeHolderSmartWalletF.deploy(overrides);
   const { address: nativeHolderSmartWalletFactoryAddress } =
-    await smartWalletFactoryF.deploy(nativeHolderSmartWalletAddress);
+    await smartWalletFactoryF.deploy(nativeHolderSmartWalletAddress, overrides);
   const { address: nativeDeployVerifierAddress } = await deployVerifierF.deploy(
-    nativeHolderSmartWalletFactoryAddress
+    nativeHolderSmartWalletFactoryAddress,
+    overrides
   );
   const { address: nativeRelayVerifierAddress } = await relayVerifierF.deploy(
-    nativeHolderSmartWalletFactoryAddress
+    nativeHolderSmartWalletFactoryAddress,
+    overrides
   );
 
   const { address: versionRegistryAddress } =
-    await versionRegistryFactory.deploy();
+    await versionRegistryFactory.deploy(overrides);
 
   let utilTokenAddress;
   if (networkName != 'mainnet') {
-    const { address } = await utilTokenF.deploy();
+    const { address } = await utilTokenF.deploy(overrides);
     utilTokenAddress = address;
   }
 
